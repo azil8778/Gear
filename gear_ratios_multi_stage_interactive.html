@@ -1,0 +1,578 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans,'Segoe UI',sans-serif);background:transparent;color:var(--color-text-primary)}
+.hero{text-align:center;padding:1.5rem 1rem 0.5rem}
+.hero h1{font-size:22px;font-weight:500;margin-bottom:4px}
+.hero p{font-size:13px;color:var(--color-text-secondary)}
+.tabs{display:flex;gap:6px;justify-content:center;padding:0.75rem 1rem;flex-wrap:wrap}
+.tab-btn{padding:7px 14px;border-radius:20px;border:1.5px solid var(--color-border-secondary);background:transparent;cursor:pointer;font-size:12px;font-weight:500;color:var(--color-text-secondary);transition:all .15s}
+.tab-btn.active{background:var(--color-text-primary);color:var(--color-background-primary);border-color:var(--color-text-primary)}
+.section{display:none;padding:0 1rem 1.5rem}
+.section.active{display:block}
+
+/* GEAR BUILDER */
+.toolbar{display:flex;gap:8px;align-items:center;padding:0.6rem 0;flex-wrap:wrap}
+.add-btn{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:20px;border:1.5px dashed var(--color-border-secondary);background:transparent;cursor:pointer;font-size:13px;color:var(--color-text-secondary);transition:all .15s}
+.add-btn:hover{border-color:#1a7fd4;color:#1a7fd4;background:var(--color-background-secondary)}
+.reset-btn{padding:7px 14px;border-radius:20px;border:1.5px solid var(--color-border-tertiary);background:transparent;cursor:pointer;font-size:12px;color:var(--color-text-secondary)}
+.reset-btn:hover{border-color:var(--color-border-primary);background:var(--color-background-secondary)}
+.speed-row{display:flex;align-items:center;gap:10px;margin-bottom:0.5rem}
+.speed-row label{font-size:13px;color:var(--color-text-secondary);white-space:nowrap}
+.speed-row input{flex:1}
+.speed-val{font-size:13px;font-weight:500;min-width:60px;text-align:right}
+
+/* Gear chain display */
+#gear-canvas{display:block;width:100%;border-radius:12px;background:var(--color-background-secondary);margin:0.5rem 0}
+
+/* Gear cards */
+.gear-chain{display:flex;align-items:stretch;gap:0;overflow-x:auto;padding:0.5rem 0;margin:0.5rem 0}
+.gear-card{background:var(--color-background-primary);border:1.5px solid var(--color-border-tertiary);border-radius:10px;padding:0.7rem 0.8rem;min-width:120px;position:relative;flex-shrink:0}
+.gear-card.driver{border-color:#1a7fd4}
+.gear-sep-wrap{display:flex;align-items:center;padding:0 4px;color:var(--color-text-secondary);font-size:18px;flex-shrink:0}
+.gear-card-label{font-size:11px;color:var(--color-text-secondary);margin-bottom:4px}
+.gear-card-name{font-size:12px;font-weight:500;margin-bottom:6px}
+.gear-teeth-row{display:flex;align-items:center;gap:6px}
+.gear-teeth-row input[type=range]{flex:1;height:4px}
+.gear-teeth-val{font-size:13px;font-weight:500;min-width:28px;text-align:right}
+.gear-rpm{font-size:11px;color:var(--color-text-secondary);margin-top:5px}
+.gear-rpm span{font-weight:500;color:var(--color-text-primary)}
+.delete-btn{position:absolute;top:5px;right:6px;background:none;border:none;cursor:pointer;font-size:14px;color:var(--color-text-secondary);line-height:1;padding:2px}
+.delete-btn:hover{color:#c0392b}
+.gear-type-badge{font-size:10px;padding:2px 7px;border-radius:10px;display:inline-block;margin-top:4px}
+.badge-driver{background:#e8f2fb;color:#0c447c}
+.badge-driven{background:#faeeda;color:#633806}
+.badge-idler{background:#eeedfe;color:#3c3489}
+
+/* Stats */
+.stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0.75rem 0}
+.stat{background:var(--color-background-secondary);border-radius:8px;padding:0.6rem 0.75rem;text-align:center}
+.stat-l{font-size:11px;color:var(--color-text-secondary);margin-bottom:2px}
+.stat-v{font-size:18px;font-weight:500}
+.stat-v.blue{color:#1a7fd4}
+.stat-v.amber{color:#ba7517}
+.stat-v.green{color:#3b6d11}
+.stat-v.purple{color:#534ab7}
+.dir-row{text-align:center;margin:0.25rem 0}
+.dir-badge{display:inline-block;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:500}
+.dir-opp{background:#fef3e2;color:#8a5a00}
+.dir-same{background:#e4f4ea;color:#1c6935}
+.formula-strip{background:var(--color-background-secondary);border-left:3px solid #1a7fd4;border-radius:0 8px 8px 0;padding:0.5rem 0.9rem;font-size:12px;margin:0.75rem 0;color:var(--color-text-secondary)}
+.formula-strip strong{color:var(--color-text-primary);font-weight:500}
+.tip{font-size:12px;color:var(--color-text-secondary);padding:0.25rem 0;text-align:center}
+
+/* QUIZ */
+.quiz-q{font-size:15px;font-weight:500;margin-bottom:0.9rem;line-height:1.4}
+.quiz-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:0.75rem}
+.quiz-opt{padding:10px;border:1.5px solid var(--color-border-secondary);border-radius:8px;cursor:pointer;font-size:13px;transition:all .15s;text-align:center;background:transparent;color:var(--color-text-primary)}
+.quiz-opt:hover{border-color:#1a7fd4;background:var(--color-background-secondary)}
+.quiz-opt.correct{border-color:#2e8a45;background:#e4f4ea;color:#1c6935}
+.quiz-opt.wrong{border-color:#c0392b;background:#fdecea;color:#8a1a10}
+.quiz-fb{font-size:13px;padding:10px;border-radius:8px;margin-bottom:0.75rem;display:none}
+.quiz-fb.show{display:block}
+.quiz-fb.correct{background:#e4f4ea;color:#1c6935}
+.quiz-fb.wrong{background:#fdecea;color:#8a1a10}
+.progress-bar{height:5px;background:var(--color-background-secondary);border-radius:3px;margin:0 0 0.75rem;overflow:hidden}
+.progress-fill{height:100%;background:#1a7fd4;border-radius:3px;transition:width .3s}
+.quiz-end{text-align:center;padding:1.5rem 0}
+.quiz-score{font-size:26px;font-weight:500;margin-bottom:0.5rem}
+.quiz-sub{font-size:13px;color:var(--color-text-secondary);margin-bottom:1.25rem}
+
+/* DIRECTION TAB */
+.dir-scenarios{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:0.75rem}
+.dir-card{border:1.5px solid var(--color-border-tertiary);border-radius:8px;padding:0.7rem;cursor:pointer;transition:all .2s;text-align:center}
+.dir-card:hover,.dir-card.active{border-color:#1a7fd4;background:var(--color-background-secondary)}
+.dir-card h3{font-size:13px;font-weight:500;margin-bottom:3px}
+.dir-card p{font-size:11px;color:var(--color-text-secondary)}
+.dir-explain{font-size:13px;color:var(--color-text-secondary);text-align:center;padding:0.75rem;background:var(--color-background-secondary);border-radius:8px;margin-top:0.75rem}
+</style>
+
+<div class="hero">
+  <h1>⚙️ Gear Ratios — Interactive Lab</h1>
+  <p>Build your own gear train — add up to 8 gears and watch the math update live!</p>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('builder',this)">⚙️ Gear Builder</button>
+  <button class="tab-btn" onclick="switchTab('direction',this)">↩️ Direction</button>
+  <button class="tab-btn" onclick="switchTab('quiz',this)">🧠 Quiz</button>
+</div>
+
+<!-- TAB: GEAR BUILDER -->
+<div id="tab-builder" class="section active">
+  <div class="speed-row">
+    <label>Input speed</label>
+    <input type="range" id="inputRpm" min="10" max="600" value="300" step="1" oninput="redraw()">
+    <span class="speed-val" id="inputRpmVal">300 rpm</span>
+  </div>
+
+  <div class="toolbar">
+    <button class="add-btn" onclick="addGear()"><i class="ti ti-plus" aria-hidden="true" style="font-size:16px"></i> Add gear</button>
+    <button class="add-btn" onclick="addIdler()"><i class="ti ti-refresh" aria-hidden="true" style="font-size:16px"></i> Add idler</button>
+    <button class="reset-btn" onclick="resetGears()">Reset</button>
+  </div>
+
+  <canvas id="gear-canvas" height="170"></canvas>
+
+  <div class="gear-chain" id="gear-chain"></div>
+
+  <div class="stats-bar">
+    <div class="stat"><div class="stat-l">Total ratio</div><div class="stat-v blue" id="stat-ratio">—</div></div>
+    <div class="stat"><div class="stat-l">Output speed</div><div class="stat-v amber" id="stat-speed">—</div></div>
+    <div class="stat"><div class="stat-l">Torque ×</div><div class="stat-v green" id="stat-torque">—</div></div>
+    <div class="stat"><div class="stat-l">Stages</div><div class="stat-v purple" id="stat-stages">—</div></div>
+  </div>
+
+  <div class="dir-row"><span class="dir-badge dir-opp" id="dir-badge">↩️ —</span></div>
+
+  <div class="formula-strip">
+    <strong>Total ratio</strong> = multiply each stage's (driven ÷ driver) together &nbsp;·&nbsp; Output RPM = Input ÷ Total ratio
+  </div>
+  <div class="tip">💡 Idler gears flip direction without changing speed or torque!</div>
+</div>
+
+<!-- TAB: DIRECTION -->
+<div id="tab-direction" class="section">
+  <p style="font-size:13px;color:var(--color-text-secondary);margin-bottom:0.75rem">Tap a scenario to see how rotation direction works.</p>
+  <div class="dir-scenarios">
+    <div class="dir-card active" onclick="showDir(0,this)"><h3>2 External gears</h3><p>Driver + Driven</p></div>
+    <div class="dir-card" onclick="showDir(1,this)"><h3>Idler gear</h3><p>Driver + Idler + Driven</p></div>
+    <div class="dir-card" onclick="showDir(2,this)"><h3>Internal gear</h3><p>Pinion inside Ring</p></div>
+    <div class="dir-card" onclick="showDir(3,this)"><h3>Rack & Pinion</h3><p>Rotation → Linear</p></div>
+  </div>
+  <canvas id="dirCanvas" width="620" height="180" style="width:100%;max-width:620px;display:block;margin:0 auto;border-radius:10px;background:var(--color-background-secondary)"></canvas>
+  <div class="dir-explain" id="dir-explain">Two external gears always spin in <strong>opposite directions</strong>. Watch the teeth mesh at the contact point!</div>
+</div>
+
+<!-- TAB: QUIZ -->
+<div id="tab-quiz" class="section">
+  <div id="quiz-area">
+    <div class="progress-bar"><div class="progress-fill" id="quiz-progress" style="width:0%"></div></div>
+    <div id="quiz-qnum" style="font-size:12px;color:var(--color-text-secondary);margin-bottom:0.5rem">Question 1 of 8</div>
+    <div class="quiz-q" id="quiz-q"></div>
+    <div class="quiz-opts" id="quiz-opts"></div>
+    <div class="quiz-fb" id="quiz-fb"></div>
+    <button class="tab-btn" id="quiz-next" onclick="nextQ()" style="display:none;margin:0 auto">Next →</button>
+  </div>
+  <div id="quiz-end" class="quiz-end" style="display:none">
+    <div class="quiz-score" id="quiz-score-text"></div>
+    <div class="quiz-sub" id="quiz-score-sub"></div>
+    <button class="tab-btn active" onclick="resetQuiz()" style="margin:0 auto;display:block">Play again</button>
+  </div>
+</div>
+
+<script>
+const COLORS = ['#1a7fd4','#e09820','#6c47c9','#2e8a45','#d85a30','#0f6e56','#c0392b','#854f0b'];
+const LABELS = ['Driver','Gear 2','Gear 3','Gear 4','Gear 5','Gear 6','Gear 7','Gear 8'];
+
+let gears = [];
+let animId;
+let angles = [];
+let dirMode = 0, dirAngle = 0, dirAnimId;
+
+function defaultGears() {
+  return [
+    {teeth:20, isIdler:false},
+    {teeth:40, isIdler:false}
+  ];
+}
+
+function resetGears() {
+  gears = defaultGears();
+  angles = gears.map(()=>0);
+  redraw();
+}
+
+function addGear() {
+  if (gears.length >= 8) return;
+  gears.push({teeth:30, isIdler:false});
+  angles.push(0);
+  redraw();
+}
+
+function addIdler() {
+  if (gears.length >= 8) return;
+  gears.push({teeth:20, isIdler:true});
+  angles.push(0);
+  redraw();
+}
+
+function removeGear(i) {
+  if (gears.length <= 2) return;
+  gears.splice(i,1);
+  angles.splice(i,1);
+  redraw();
+}
+
+function setTeeth(i, v) {
+  gears[i].teeth = parseInt(v);
+  redraw();
+}
+
+function getRpms(inputRpm) {
+  const rpms = [inputRpm];
+  const dirs = [1];
+  for (let i=1;i<gears.length;i++) {
+    const prev = gears[i-1], cur = gears[i];
+    const ratio = cur.teeth / prev.teeth;
+    rpms.push(rpms[i-1] / ratio);
+    if (cur.isIdler || prev.isIdler) {
+      dirs.push(dirs[i-1]);
+    } else {
+      dirs.push(-dirs[i-1]);
+    }
+  }
+  return {rpms, dirs};
+}
+
+function getTotalRatio() {
+  let ratio = 1;
+  let stages = 0;
+  for (let i=1;i<gears.length;i++) {
+    if (!gears[i].isIdler && !gears[i-1].isIdler) {
+      ratio *= gears[i].teeth / gears[i-1].teeth;
+      stages++;
+    } else if (gears[i].isIdler) {
+      // idler: count the pair before and after as separate
+    }
+  }
+  if (stages === 0) {
+    ratio = gears[gears.length-1].teeth / gears[0].teeth;
+    stages = 1;
+  }
+  return {ratio, stages};
+}
+
+function renderCards() {
+  const inputRpm = parseInt(document.getElementById('inputRpm').value);
+  const {rpms, dirs} = getRpms(inputRpm);
+  const chain = document.getElementById('gear-chain');
+  chain.innerHTML = '';
+  gears.forEach((g,i)=>{
+    if (i>0) {
+      const sep = document.createElement('div');
+      sep.className = 'gear-sep-wrap';
+      sep.textContent = '⚙';
+      chain.appendChild(sep);
+    }
+    const card = document.createElement('div');
+    card.className = 'gear-card' + (i===0?' driver':'');
+    const isFirst = i===0;
+    const isLast = i===gears.length-1;
+    const typeLabel = g.isIdler ? 'Idler' : isFirst ? 'Driver' : 'Driven';
+    const badgeClass = g.isIdler ? 'badge-idler' : isFirst ? 'badge-driver' : 'badge-driven';
+    const dir = dirs[i]>0 ? '⟳ CW' : '⟲ CCW';
+    card.innerHTML = `
+      ${(!isFirst)?`<button class="delete-btn" onclick="removeGear(${i})" title="Remove">✕</button>`:''}
+      <div class="gear-card-label">${LABELS[i]||'Gear'}</div>
+      <div class="gear-teeth-row">
+        <input type="range" min="8" max="80" step="1" value="${g.teeth}" oninput="setTeeth(${i},this.value);this.nextElementSibling.textContent=this.value+'t'">
+        <span class="gear-teeth-val">${g.teeth}t</span>
+      </div>
+      <div class="gear-rpm"><span>${Math.round(rpms[i])}</span> rpm &nbsp; ${dir}</div>
+      <span class="gear-type-badge ${badgeClass}">${typeLabel}</span>
+    `;
+    chain.appendChild(card);
+  });
+}
+
+function renderStats() {
+  const inputRpm = parseInt(document.getElementById('inputRpm').value);
+  const {rpms, dirs} = getRpms(inputRpm);
+  const outRpm = rpms[rpms.length-1];
+  const outDir = dirs[dirs.length-1];
+  const totalRatio = inputRpm / outRpm;
+  const stages = gears.length - 1;
+
+  document.getElementById('stat-ratio').textContent = totalRatio.toFixed(2)+':1';
+  document.getElementById('stat-speed').textContent = Math.round(outRpm)+' rpm';
+  document.getElementById('stat-torque').textContent = totalRatio.toFixed(2)+'×';
+  document.getElementById('stat-stages').textContent = stages;
+
+  const badge = document.getElementById('dir-badge');
+  if (outDir > 0) {
+    badge.textContent = '⟳ Same direction as input';
+    badge.className = 'dir-badge dir-same';
+  } else {
+    badge.textContent = '⟲ Opposite direction to input';
+    badge.className = 'dir-badge dir-opp';
+  }
+}
+
+function drawGearCanvas() {
+  const canvas = document.getElementById('gear-canvas');
+  const W = canvas.offsetWidth || 640;
+  canvas.width = W;
+  const ctx = canvas.getContext('2d');
+  const H = 170;
+  ctx.clearRect(0,0,W,H);
+
+  const inputRpm = parseInt(document.getElementById('inputRpm').value);
+  const {rpms, dirs} = getRpms(inputRpm);
+
+  const n = gears.length;
+  const maxR = 60;
+  const minR = 18;
+  const maxTeeth = Math.max(...gears.map(g=>g.teeth));
+
+  function getR(teeth) {
+    return minR + (teeth / maxTeeth) * (maxR - minR);
+  }
+
+  // Compute positions: pack them left to right with actual radii
+  let positions = [];
+  let x = 0;
+  for (let i=0;i<n;i++) {
+    const r = getR(gears[i].teeth);
+    if (i===0) x = r + 10;
+    else {
+      const prevR = getR(gears[i-1].teeth);
+      x += prevR + r + 3;
+    }
+    positions.push({x, r});
+  }
+
+  // Scale to fit
+  const totalW = positions[n-1].x + positions[n-1].r + 10;
+  const scale = Math.min(1, (W-20) / totalW);
+  positions = positions.map(p=>({x: 10 + p.x*scale, r: p.r*scale}));
+  const cy = H/2;
+
+  // Update angles
+  for (let i=0;i<n;i++) {
+    const speedFactor = (rpms[i]||0) / 300;
+    angles[i] = (angles[i]||0) + speedFactor * 0.018 * (dirs[i]>0?1:-1);
+  }
+
+  // Draw gears
+  for (let i=0;i<n;i++) {
+    const {x, r} = positions[i];
+    const teeth = gears[i].teeth;
+    const angle = angles[i];
+    const col = COLORS[i % COLORS.length];
+    drawGear(ctx, x, cy, r, teeth, angle, col, gears[i].isIdler);
+  }
+
+  // Labels
+  ctx.font = `${Math.max(10,12*scale)}px sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(100,100,100,0.85)';
+  for (let i=0;i<n;i++) {
+    const {x, r} = positions[i];
+    const lbl = gears[i].isIdler ? 'Idler' : LABELS[i]||'Gear';
+    ctx.fillText(lbl, x, cy + r + 16*scale + 8);
+    ctx.fillText(gears[i].teeth+'t', x, cy + r + 16*scale + 20);
+  }
+}
+
+function drawGear(ctx, cx, cy, r, teeth, angle, color, isIdler) {
+  const toothH = Math.min(r*0.28, 13);
+  const toothW = (2*Math.PI*r)/(teeth*2.8);
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(angle);
+  ctx.beginPath();
+  for (let i=0;i<teeth;i++) {
+    const a = (i/teeth)*Math.PI*2;
+    const a1=a-toothW/r, a2=a-toothW/r/2, a3=a+toothW/r/2, a4=a+toothW/r;
+    ctx.lineTo(Math.cos(a1)*r, Math.sin(a1)*r);
+    ctx.lineTo(Math.cos(a2)*(r+toothH), Math.sin(a2)*(r+toothH));
+    ctx.lineTo(Math.cos(a3)*(r+toothH), Math.sin(a3)*(r+toothH));
+    ctx.lineTo(Math.cos(a4)*r, Math.sin(a4)*r);
+  }
+  ctx.closePath();
+  ctx.fillStyle = isIdler ? '#8e7fd4' : color;
+  ctx.globalAlpha = 0.88;
+  ctx.fill();
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = 'rgba(0,0,0,0.12)';
+  ctx.lineWidth = 0.8;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(0,0,r*0.22,0,Math.PI*2);
+  ctx.fillStyle = 'rgba(255,255,255,0.55)';
+  ctx.fill();
+  ctx.restore();
+}
+
+function animLoop() {
+  drawGearCanvas();
+  animId = requestAnimationFrame(animLoop);
+}
+
+function redraw() {
+  const v = parseInt(document.getElementById('inputRpm').value);
+  document.getElementById('inputRpmVal').textContent = v+' rpm';
+  renderCards();
+  renderStats();
+}
+
+// DIRECTION TAB
+const dirExplains = [
+  'Two external gears always spin in <strong>opposite directions</strong>. The teeth push each other the other way at the contact point.',
+  'The middle <strong>idler gear</strong> reverses direction twice — so the driven gear ends up going the <strong>same way</strong> as the driver! The idler doesn\'t change speed or torque.',
+  'When a small gear (pinion) spins <em>inside</em> a large ring gear, both rotate in the <strong>same direction</strong>. Used in automatic gearboxes and planetary drives!',
+  'A rack and pinion converts <strong>rotation → straight-line motion</strong>. Spin the pinion clockwise and the rack slides right. This is how car steering works!'
+];
+
+function showDir(mode, el) {
+  dirMode = mode;
+  document.querySelectorAll('.dir-card').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('dir-explain').innerHTML = dirExplains[mode];
+}
+
+function drawDirScene() {
+  const canvas = document.getElementById('dirCanvas');
+  if (!canvas) return;
+  const W = canvas.offsetWidth || 620;
+  canvas.width = W;
+  const dctx = canvas.getContext('2d');
+  dctx.clearRect(0,0,W,180);
+  const a = dirAngle;
+
+  function sg(cx,cy,r,ang,col,ccw) {
+    const teeth=Math.round(r/5);
+    const tH=r*0.22, tW=(2*Math.PI*r)/(teeth*3);
+    dctx.save();
+    dctx.translate(cx,cy);
+    dctx.rotate(ccw?-ang:ang);
+    dctx.beginPath();
+    for(let i=0;i<teeth;i++){
+      const ag=(i/teeth)*Math.PI*2;
+      const a1=ag-tW/r,a2=ag-tW/r/2,a3=ag+tW/r/2,a4=ag+tW/r;
+      dctx.lineTo(Math.cos(a1)*r,Math.sin(a1)*r);
+      dctx.lineTo(Math.cos(a2)*(r+tH),Math.sin(a2)*(r+tH));
+      dctx.lineTo(Math.cos(a3)*(r+tH),Math.sin(a3)*(r+tH));
+      dctx.lineTo(Math.cos(a4)*r,Math.sin(a4)*r);
+    }
+    dctx.closePath();
+    dctx.fillStyle=col;
+    dctx.globalAlpha=0.88;
+    dctx.fill();
+    dctx.globalAlpha=1;
+    dctx.strokeStyle='rgba(0,0,0,0.1)';
+    dctx.lineWidth=0.8;
+    dctx.stroke();
+    dctx.beginPath();dctx.arc(0,0,r*0.22,0,Math.PI*2);
+    dctx.fillStyle='rgba(255,255,255,0.55)';dctx.fill();
+    dctx.restore();
+  }
+  function lbl(x,y,t){dctx.fillStyle='rgba(120,120,120,0.9)';dctx.font='12px sans-serif';dctx.textAlign='center';dctx.fillText(t,x,y);}
+
+  const sc=W/620;
+  const cy=85;
+  if(dirMode===0){
+    sg(180*sc,cy,52*sc,a,'#1a7fd4',false);
+    sg(340*sc,cy,52*sc,a,'#e09820',true);
+    lbl(180*sc,cy+70*sc,'Driver ⟳');
+    lbl(340*sc,cy+70*sc,'Driven ⟲');
+  } else if(dirMode===1){
+    sg(110*sc,cy,38*sc,a,'#1a7fd4',false);
+    sg(215*sc,cy,30*sc,a*1.27,'#8e7fd4',true);
+    sg(310*sc,cy,38*sc,a,'#2e8a45',false);
+    lbl(110*sc,cy+55*sc,'Driver ⟳');
+    lbl(215*sc,cy+48*sc,'Idler');
+    lbl(310*sc,cy+55*sc,'Driven ⟳');
+  } else if(dirMode===2){
+    dctx.save();dctx.translate(320*sc,cy);
+    dctx.beginPath();dctx.arc(0,0,68*sc,0,Math.PI*2);dctx.arc(0,0,54*sc,0,Math.PI*2,true);
+    dctx.fillStyle='#faeeda';dctx.fill();
+    dctx.strokeStyle='rgba(0,0,0,0.1)';dctx.lineWidth=0.5;dctx.stroke();
+    dctx.restore();
+    lbl(320*sc,cy+84*sc,'Ring gear ⟳');
+    sg(268*sc,cy,28*sc,a,'#e09820',false);
+    lbl(268*sc,cy+44*sc,'Pinion ⟳');
+  } else {
+    const rOff=(a*16)%60-30;
+    dctx.save();
+    dctx.fillStyle='#d4e8fa';dctx.fillRect(40*sc+rOff,125*sc,420*sc,22*sc);
+    dctx.strokeStyle='rgba(0,0,0,0.1)';dctx.lineWidth=0.5;dctx.strokeRect(40*sc+rOff,125*sc,420*sc,22*sc);
+    dctx.fillStyle='#1a7fd4';
+    for(let i=0;i<24;i++){const tx=40*sc+rOff+i*18*sc;if(tx>30*sc&&tx<460*sc)dctx.fillRect(tx,113*sc,10*sc,13*sc);}
+    dctx.fillStyle='rgba(120,120,120,0.9)';dctx.font='12px sans-serif';dctx.textAlign='center';dctx.fillText('Rack → slides',245*sc,163*sc);
+    dctx.restore();
+    sg(220*sc,80*sc,38*sc,a,'#1a7fd4',false);
+    lbl(220*sc,80*sc+56*sc,'Pinion ⟳');
+  }
+
+  dirAngle+=0.025;
+  dirAnimId=requestAnimationFrame(drawDirScene);
+}
+
+// QUIZ
+const questions=[
+  {q:'A driver gear has 10 teeth, the driven gear has 30 teeth. What is the gear ratio?',opts:['1:3','3:1','2:1','1:2'],ans:1,exp:'Gear Ratio = Driven ÷ Driver = 30 ÷ 10 = 3:1. The driven gear is bigger, so it slows down and gains torque.'},
+  {q:'If the gear ratio is 4:1 and input is 800 RPM, what is the output speed?',opts:['3200 RPM','200 RPM','400 RPM','100 RPM'],ans:1,exp:'Output RPM = Input ÷ Ratio = 800 ÷ 4 = 200 RPM. Higher ratio = slower output speed.'},
+  {q:'Two external gears mesh together. The driver turns clockwise. Which way does the driven gear turn?',opts:['Clockwise','Counter-clockwise','Back and forth','It stops'],ans:1,exp:'External gears always rotate in opposite directions! The teeth push each other the other way.'},
+  {q:'What is the job of an idler gear?',opts:['Increase speed','Reverse direction back to original','Reduce torque','Stop the system'],ans:1,exp:'An idler gear reverses direction twice — so the output ends up going the same way as the input. It doesn\'t change speed or torque!'},
+  {q:'A gear ratio of 5:1 means the output torque is...',opts:['5× less','5× more','The same','Half as much'],ans:1,exp:'When speed goes DOWN by 5×, torque goes UP by 5×. Speed and torque trade off — this is the golden rule of gears!'},
+  {q:'Stage 1 ratio = 2:1, Stage 2 ratio = 3:1. What is the compound total ratio?',opts:['5:1','6:1','2.5:1','1.5:1'],ans:1,exp:'Compound gear trains MULTIPLY the ratios together: 2 × 3 = 6:1. This lets small motors move huge loads!'},
+  {q:'Which arrangement gives the output the SAME direction as the driver?',opts:['Two external gears','Internal ring gear','Single stage reduction','Rack and pinion'],ans:1,exp:'An internal gear (pinion inside a ring gear) both spin in the same direction. Also, adding an idler gear in a train achieves the same effect!'},
+  {q:'A rack and pinion converts...',opts:['Speed into torque','Rotation into straight-line motion','Clockwise to counter-clockwise','Big gears to small gears'],ans:1,exp:'Rack and pinion turns rotation (spinning) into linear motion (sliding). Car steering uses this!'},
+];
+let qIdx=0,score=0,qAnswered=false;
+
+function loadQ(){
+  const q=questions[qIdx];
+  document.getElementById('quiz-qnum').textContent=`Question ${qIdx+1} of ${questions.length}`;
+  document.getElementById('quiz-progress').style.width=((qIdx/questions.length)*100)+'%';
+  document.getElementById('quiz-q').textContent=q.q;
+  const opts=document.getElementById('quiz-opts');
+  opts.innerHTML='';
+  q.opts.forEach((o,i)=>{
+    const btn=document.createElement('button');
+    btn.className='quiz-opt';btn.textContent=o;
+    btn.onclick=()=>answerQ(i);
+    opts.appendChild(btn);
+  });
+  document.getElementById('quiz-fb').className='quiz-fb';
+  document.getElementById('quiz-fb').innerHTML='';
+  document.getElementById('quiz-next').style.display='none';
+  qAnswered=false;
+}
+
+function answerQ(i){
+  if(qAnswered)return;
+  qAnswered=true;
+  const q=questions[qIdx];
+  const opts=document.querySelectorAll('.quiz-opt');
+  const fb=document.getElementById('quiz-fb');
+  if(i===q.ans){score++;opts[i].classList.add('correct');fb.className='quiz-fb correct show';fb.innerHTML='✅ '+q.exp;}
+  else{opts[i].classList.add('wrong');opts[q.ans].classList.add('correct');fb.className='quiz-fb wrong show';fb.innerHTML='❌ Not quite! '+q.exp;}
+  document.getElementById('quiz-next').style.display='block';
+}
+
+function nextQ(){
+  qIdx++;
+  if(qIdx>=questions.length){
+    document.getElementById('quiz-area').style.display='none';
+    document.getElementById('quiz-end').style.display='block';
+    const pct=Math.round((score/questions.length)*100);
+    document.getElementById('quiz-score-text').textContent=`${score} / ${questions.length} correct`;
+    document.getElementById('quiz-score-sub').textContent=pct===100?'🏆 Perfect score! Gear genius!':pct>=75?'🎉 Great job! You really get gears!':pct>=50?'👍 Good effort! Review and try again.':'💪 Keep practicing — explore the builder!';
+  } else loadQ();
+}
+
+function resetQuiz(){
+  qIdx=0;score=0;
+  document.getElementById('quiz-area').style.display='block';
+  document.getElementById('quiz-end').style.display='none';
+  loadQ();
+}
+
+function switchTab(name,btn){
+  cancelAnimationFrame(dirAnimId);
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='direction'){dirAngle=0;drawDirScene();}
+  if(name==='builder'){redraw();}
+}
+
+// Init
+resetGears();
+animLoop();
+loadQ();
+</script>
